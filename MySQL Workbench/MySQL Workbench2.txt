@@ -1,0 +1,23 @@
+CREATE DATABASE college;
+USE college;
+
+CREATE TABLE student(rollno INT PRIMARY KEY, name VARCHAR(50));
+
+INSERT INTO student(rollno,name) VALUES(101, "dev"),(102, "vaghasiya");
+
+SELECT * FROM student;
+
+CREATE DATABASE yellow_panther;
+USE yellow_panther;
+CREATE TABLE empolyee(id INT PRIMARY KEY, name VARCHAR(50), salary INT NOT NULL);
+INSERT INTO empolyee (id, name, salary) VALUES(1,"name", 25000), (2, "dev", 30000), (3, "vaghasiya", 50000);
+SELECT * FROM empolyee;
+
+CREATE TABLE emp(id INT,salary INT DEFAULT 25000);
+INSERT INTO emp (id) VALUES(101);
+SELECT * FROM emp;
+
+CREATE TABLE city(id INT PRIMARY KEY, name VARCHAR(50), age INT, CONSTRAINT age_check CHECK (age>=18));
+INSERT INTO city VALUES (1, "rajkot", 21);
+INSERT INTO city VALUES (2, "rajkot", 17);
+SELECT * FROM city;

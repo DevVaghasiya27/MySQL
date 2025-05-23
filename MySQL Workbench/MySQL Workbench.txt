@@ -1,0 +1,109 @@
+CREATE DATABASE college;
+USE college;
+
+CREATE TABLE student (
+rollno INT PRIMARY KEY, name VARCHAR(50), marks VARCHAR(3), grade VARCHAR(1), city VARCHAR(50)
+);
+
+INSERT INTO student 
+(rollno, name, marks, grade, city)
+ VALUES
+ (101, "anil","78","C","Pune"), 
+ (102, "bhumika","93","B","Mumbai"), 
+ (103, "chetan","85","A","Mumbai"), 
+ (104, "dhruv","96","A","Delhi"), 
+ (105, "emanuel","12","F","Delhi"), 
+ (106, "farah","82","B","Delhi");
+ 
+SELECT rollno,name FROM student;
+SELECT * FROM student;
+SELECT DISTINCT city FROM student;
+SELECT name FROM student WHERE marks>80;
+SELECT name FROM student WHERE grade="A";
+SELECT * FROM student WHERE marks>80 AND city="Mumbai";
+SELECT * FROM student WHERE marks+10 > 100;
+SELECT * FROM student WHERE marks>80 OR city="Mumbai";
+SELECT * FROM student WHERE marks BETWEEN 80 AND 90;
+SELECT * FROM student WHERE city NOT IN ("Mumbai" , "Pune");
+SELECT * FROM student WHERE city IN ("Mumbai" , "Pune");
+SELECT * FROM student LIMIT 3;
+SELECT * FROM student WHERE marks>75 LIMIT 3;
+SELECT * FROM student ORDER BY marks DESC LIMIT 3;
+
+SELECT MAX(marks) FROM student;
+SELECT AVG(marks) FROM student;
+SELECT MIN(marks) FROM student;
+SELECT SUM(marks) FROM student;
+SELECT COUNT(city) FROM student;
+SELECT city, COUNT(name) FROM student GROUP BY city;
+SELECT city, AVG(marks) FROM student GROUP BY city ORDER BY AVG(marks) DESC;
+SELECT grade, COUNT(name) FROM student GROUP BY grade ORDER BY grade;
+SELECT COUNT(name), city FROM student GROUP BY city HAVING MAX(marks)>90;
+SELECT CITY FROM student WHERE grade="A" GROUP BY city HAVING MAX(marks)>= 93 ORDER BY city ASC;
+
+SET SQL_SAFE_UPDATES = 0;
+UPDATE student SET grade = "O" WHERE grade = "A";
+UPDATE student SET marks= 85 WHERE rollno = 105;
+UPDATE student SET grade = "O" WHERE marks>90;
+UPDATE student SET grade = "B" WHERE marks BETWEEN 80 AND 90;
+UPDATE student SET grade = "C" WHERE marks <80;
+SELECT * FROM course;
+UPDATE student SET marks = marks + 1;
+DELETE FROM student WHERE marks<80;
+
+CREATE TABLE dept (id INT PRIMARY KEY, name VARCHAR(50));
+INSERT INTO dept (id, name) VALUES (101, "English"), (102, "IT");
+
+UPDATE dept SET id=103 WHERE name="IT";
+
+
+CREATE TABLE teacher (id INT PRIMARY KEY, name VARCHAR(50), dept_id INT, FOREIGN KEY(dept_id) REFERENCES dept(id) ON DELETE CASCADE  ON UPDATE CASCADE);
+INSERT INTO teacher (id, name, dept_id) VALUES (101, "dev",102),(102, "vaghasiya",101),(103, "dev1",102);
+
+ALTER TABLE student ADD age INT NOT NULL DEFAULT 19;
+ALTER TABLE student MODIFY age VARCHAR(2);
+ALTER TABLE student CHANGE age stu_age INT;
+ALTER TABLE student DROP COLUMN stu_age;
+ALTER TABLE stu RENAME TO student;
+TRUNCATE student;
+
+ALTER TABLE student CHANGE name full_name VARCHAR(50);
+ALTER TABLE student DROP COLUMN grade;
+DELETE FROM student WHERE marks<80;
+
+CREATE TABLE student (id INT PRIMARY KEY, name VARCHAR(50));
+INSERT INTO student (id, name) VALUES (101,"adam"),(102,"bob"),(103,"casey");
+CREATE TABLE course (id INT PRIMARY KEY, course VARCHAR(50));
+INSERT INTO course (id, course) VALUES (102,"english"),(105,"maths"),(103,"science"),(107,"computer science");
+
+SELECT * FROM student as s INNER JOIN course as c ON s.id = c.id;
+SELECT * FROM student as s LEFT JOIN course as c ON s.id = c.id;
+SELECT * FROM student as s RIGHT JOIN course as c ON s.id = c.id;
+SELECT * FROM student as s LEFT JOIN course as c ON s.id = c.id UNION
+SELECT * FROM student as s RIGHT JOIN course as c ON s.id = c.id;
+SELECT * FROM student as s LEFT JOIN course as c ON s.id = c.id WHERE c.id IS NULL;
+SELECT * FROM student as s RIGHT JOIN course as c ON s.id = c.id WHERE s.id IS NULL;
+SELECT * FROM student as s LEFT JOIN course as c ON s.id = c.id WHERE c.id IS NULL UNION
+SELECT * FROM student as s RIGHT JOIN course as c ON s.id = c.id WHERE s.id IS NULL;
+SELECT * FROM student as a JOIN student as b ON a.id = b.id;
+SELECT * FROM course as a JOIN course as b ON a.id = b.id;
+
+CREATE TABLE employee(id INT PRIMARY KEY, name VARCHAR(50),manger_id INT);
+INSERT INTO employee (id, name, manger_id) VALUES (101,"adam",103),(102,"bob",104),(103,"casey",NULL),(104,"donald",103);
+SELECT * FROM employee;
+
+SELECT a.name AS manager_name, b.name FROM employee as a JOIN employee as b ON a.id = b.manger_id;
+SELECT b.name, a.name AS manager_name FROM employee as a JOIN employee as b ON a.id = b.manger_id;
+
+SELECT name, marks FROM student WHERE marks > (SELECT AVG(marks) FROM student);
+SELECT AVG(marks) FROM student;
+
+
+SELECT name, rollno FROM student WHERE rollno IN (SELECT rollno FROM student WHERE rollno%2 = 0);
+
+SELECT MAX(marks) FROM (SELECT * FROM student WHERE city = "Delhi") AS temp;
+SELECT MAX(marks) FROM student WHERE city="Delhi";
+
+CREATE VIEW view1 AS SELECT rollno, name, marks FROM student;
+SELECT * FROM view1;
+DROP VIEW view1;

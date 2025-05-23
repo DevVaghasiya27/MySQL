@@ -1,0 +1,349 @@
+USER NAME AND POST
+SELECT username, post.post_id FROM post INNER JOIN likes ON post.user_id=likes.user_id GROUP BY post.post_id;
+
+USER NAME AND POST(SIMPLE INNER JOIN)
+SELECT username,post_id FROM userinfo INNER JOIN post ON userinfo.user_id=post.user_id;
+
+
+
+USER NAME AND TOTAL POST
+SELECT username, COUNT(post_id) FROM post INNER JOIN userinfo ON post.user_id=userinfo.user_id GROUP BY userinfo.username;
+
+
+USER ID AND HIGEST POST ID (WITH MULTIPLE ROW SUBQUERY USING IN)
+
+select user_id, post_id from post where (user_id, post_id) in (SELECT user_id, max(post_id) from post GROUP by user_id);
+
+
+
+POST ID AND TOTAL LIKES
+SELECT post_id, COUNT(user_id) AS COUNT FROM likes GROUP BY post_id;
+SELECT post_id, COUNT(like_id) AS COUNT FROM likes GROUP BY post_id;
+
+
+
+USERNAME AND TOTAL LIKES DONE BY HIM
+SELECT userinfo.username, COUNT(like_id) FROM likes INNER JOIN userinfo ON likes.user_id=userinfo.user_id GROUP BY userinfo.username;
+
+
+
+USERNAME AND TOTAL LIKES(WITH THE HELP OF 3 VIEW TABLES)
+SELECT need.username,SUM(total_likes) FROM need GROUP By need.username;
+SELECT need.username,SUM(total_likes) FROM need GROUP By need.username ORDER BY need.post_id;
+
+
+
+ALL USER_ID, USERNAME AND TOTAL LIKES (WITH MULTIPLE LEFT JOIN)
+
+SELECT 
+    u.user_id,
+    u.username,
+    COUNT(DISTINCT l.like_id) AS total_likes
+FROM 
+    userinfo u
+LEFT JOIN 
+    post p ON u.user_id = p.user_id
+LEFT JOIN 
+    likes l ON p.post_id = l.post_id
+GROUP BY 
+    u.user_id, u.username;
+
+
+USER_ID, USERNAME AND TOTAL LIKES OF THOSE USERS WHO POST (WITH MULTIPLE INNER/RIGHT JOIN):
+
+	
+SELECT 
+    u.user_id,
+    u.username,
+    COUNT(DISTINCT l.like_id) AS total_likes
+FROM 
+    userinfo u
+INNER JOIN 
+    post p ON u.user_id = p.user_id
+INNER JOIN 
+    likes l ON p.post_id = l.post_id
+GROUP BY 
+    u.user_id, u.username;
+
+
+ALL USER_ID, USERNAME AND TOTAL LIKES (WITH MULTIPLE LEFT JOIN ORDER BY HIGHEST LIKES)
+
+SELECT 
+    u.user_id,
+    u.username,
+    COUNT(DISTINCT l.like_id) AS total_likes
+FROM 
+    userinfo u
+LEFT JOIN 
+    post p ON u.user_id = p.user_id
+LEFT JOIN 
+    likes l ON p.post_id = l.post_id
+GROUP BY 
+    u.user_id, u.username
+ORDER BY
+	total_likes DESC;
+
+
+USER_ID, USERNAME AND TOTAL LIKES LIKES MORE THEN 5 (WITH MULTIPLE LEFT JOIN ORDER BY HIGHEST LIKES)
+
+
+SELECT 
+    u.user_id,
+    u.username,
+    COUNT(DISTINCT l.like_id) AS total_likes
+FROM 
+    userinfo u
+LEFT JOIN 
+    post p ON u.user_id = p.user_id
+LEFT JOIN 
+    likes l ON p.post_id = l.post_id
+GROUP BY 
+    u.user_id, u.username
+HAVING
+	total_likes >=5
+ORDER BY
+	total_likes DESC;
+
+
+Get distinct users and the total number of likes they received, where the user has fewer than 3 posts order by total_likes desc:
+
+
+SELECT 
+    u.user_id,
+    u.username,
+    (SELECT COUNT(l.like_id)
+     FROM likes l
+     WHERE l.post_id IN (
+         SELECT p.post_id
+         FROM post p
+         WHERE p.user_id = u.user_id
+     )) AS total_likes
+FROM 
+    userinfo u
+WHERE 
+    (SELECT COUNT(p.post_id)
+     FROM post p
+     WHERE p.user_id = u.user_id) < 3
+ORDER BY 
+    total_likes DESC;
+
+
+
+
+USERNAME AND TOTAL comments DONE BY HIM
+
+SELECT userinfo.username, COUNT(comments.commentator_id) AS total_comments FROM comments INNER JOIN userinfo ON comments.commentator_id=userinfo.user_id GROUP BY userinfo.user_id;
+
+
+
+POST ID AND TOTAL comments on that post
+SELECT post_id, COUNT(comment_id) AS total_comments FROM comments GROUP BY post_id;
+
+
+
+
+ALL POST ID COMMENTATOR AND COMMENT
+
+SELECT post_id, commentator, comment FROM comments ORDER By post_id;
+
+
+SINGLE POST ID AND ALL COMMENTATOR AND THIER COMMENT
+
+SELECT post_id, commentator, comment FROM comments WHERE post_id=10600002 ORDER By post_id;
+
+
+SINGLE COMMENTATOR AND ALL POST ID AND HIS COMMENT
+
+SELECT  commentator, comments.post_id, comment FROM comments WHERE comments.commentator="l_dev_l" ORDER By comments.comment_id;
+
+
+
+This query will return all distinct users and their total number of posts where the total is less than 3.
+
+
+SELECT 
+    u.user_id,
+    u.username,
+    COUNT(DISTINCT p.post_id) AS total_posts
+FROM 
+    userinfo u
+LEFT JOIN 
+    post p ON u.user_id = p.user_id
+GROUP BY 
+    u.user_id, u.username
+HAVING 
+    COUNT(DISTINCT p.post_id) < 3;
+
+
+subquery to calculate the total posts for each user and filter users with fewer than 3 posts:
+
+
+SELECT 
+    u.user_id,
+    u.username,
+    user_post_counts.total_posts
+FROM 
+    userinfo u
+INNER JOIN (
+    SELECT 
+        p.user_id,
+        COUNT(DISTINCT p.post_id) AS total_posts
+    FROM 
+        post p
+    GROUP BY 
+        p.user_id
+    HAVING 
+        COUNT(DISTINCT p.post_id) < 3
+) AS user_post_counts 
+ON u.user_id = user_post_counts.user_id;
+
+
+
+This query fetches distinct users and their total posts, filtering out those with 3 or more posts.(with out join and with only subquery)
+
+
+SELECT 
+    user_id, 
+    username, 
+    (SELECT COUNT(DISTINCT post_id) 
+     FROM post 
+     WHERE post.user_id = userinfo.user_id) AS total_posts
+FROM 
+    userinfo
+WHERE 
+    (SELECT COUNT(DISTINCT post_id) 
+     FROM post 
+     WHERE post.user_id = userinfo.user_id) < 3;
+
+
+
+TOTAL POST BY USER WITH ROLL UP TO SHOW TOTAL POST OF INSTAGRAM
+
+
+SELECT 
+    ifnull(userinfo.username,"total_post") AS USERS, 
+    COUNT(DISTINCT post.post_id) AS "Total Post by user"
+FROM 
+    post 
+LEFT JOIN 
+    userinfo 
+ON 
+    userinfo.user_id = post.user_id 	
+GROUP BY 
+    userinfo.username WITH ROLLUP;
+
+
+
+STORED PROCEDURE TO RETURN USERNAME AND TOTAL POST PAR USER;(SIMPLE STORED PROCEDURE)
+
+
+DELIMITER $$
+CREATE PROCEDURE total_post_with_user_name()
+BEGIN
+SELECT userinfo.username, COUNT(DISTINCT post_id) AS "Total Post" FROM post LEFT JOIN userinfo on userinfo.user_id = post.user_id GROUP BY userinfo.user_id ORDER BY "Total Post";
+END $$
+
+DELIMITER ;
+
+# to call a procedure
+call total_post_with_user_name();
+
+
+
+STORED PROCEDURE TO RETURN USERID BASED ON USERNAME;(STORED PROCEDURE WITH IN)	
+
+
+DELIMITER $$
+CREATE PROCEDURE get_userid(IN p_username varchar(50))
+BEGIN
+	SELECT user_id FROM userinfo 
+    WHERE username = p_username;
+END $$
+
+DELIMITER ;
+
+CALL get_userid("l_xyz_l");
+
+
+
+STORED PROCEDURE TO RETURN USERNAME BASED ON USERID;(STORED PROCEDURE WITH IN)
+
+
+DELIMITER $$
+CREATE PROCEDURE get_username(IN p_user_id BIGINT)
+BEGIN
+	SELECT username FROM userinfo 
+    WHERE user_id = p_user_id;
+END $$
+
+DELIMITER ;
+
+CALL get_username(103);
+
+
+
+
+STORED PROCEDURE TO RETURN TOTAL POST BY USER BASED ON USERNAME;(STORED PROCEDURE WITH IN,OUT AND SUB QUERRY)
+
+
+
+DELIMITER $$
+
+CREATE PROCEDURE get_total_post(IN p_username VARCHAR(50), OUT p_total_post INT)
+BEGIN
+    SELECT 
+        COUNT(DISTINCT post.post_id) 
+    INTO 
+        p_total_post
+    FROM 
+        post
+    WHERE 
+        post.user_id = (SELECT user_id FROM userinfo WHERE username = p_username);
+END $$
+
+DELIMITER ;
+
+
+
+CALL get_total_post('l_dev_l', @total_post);
+SELECT @total_post; -- View the output
+
+
+
+STORED PROCEDURE TO RETURN USERNAME TOTAL POST BY USER BASED ON USERNAME;(STORED PROCEDURE WITH IN,OUT,LEFT JOIN AND SUB QUERRY)
+
+
+
+DELIMITER $$
+
+CREATE PROCEDURE get_total_post(
+    IN p_username VARCHAR(50), 
+    OUT p_total_post INT, 
+    OUT p_output_username VARCHAR(50)
+)
+BEGIN
+    SELECT 
+        userinfo.username, 
+        COUNT(DISTINCT post.post_id) 
+    INTO 
+        p_output_username, 
+        p_total_post
+    FROM 
+        post
+    LEFT JOIN 
+        userinfo 
+    ON 
+        userinfo.user_id = post.user_id
+    WHERE 
+        userinfo.username = p_username
+    GROUP BY 
+        userinfo.username;
+END $$
+
+DELIMITER ;
+
+#for output
+CALL get_total_post('l_dev_l', @total_post, @output_username);
+SELECT @output_username AS username, @total_post AS total_posts;
+
+
